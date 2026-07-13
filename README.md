@@ -1,0 +1,1 @@
+NetForge-Core is a deterministic, discrete-event network traffic simulator in Java.
