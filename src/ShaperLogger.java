@@ -4,6 +4,10 @@ public class ShaperLogger implements TrafficShaper {
     private final TrafficShaper innerShaper;
     private final String name;
 
+    public ShaperLogger(TrafficShaper innerShaper) {
+        this(innerShaper, "ShaperLogger");
+    }
+
     public ShaperLogger(TrafficShaper innerShaper, String name) {
         this.innerShaper = Objects.requireNonNull(innerShaper, "Inner shaper cannot be null");
         this.name = Objects.requireNonNull(name, "Shaper name cannot be null");

@@ -3,11 +3,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public interface RoutingTable {
-    String route(Packet packet);
-}
-
-
 public final class PrefixRoutingTable implements RoutingTable {
 
     private final Map<String, String> prefixRouteMap;

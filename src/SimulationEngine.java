@@ -1,18 +1,6 @@
-package src;
 import java.util.ArrayList;
 import java.util.List;
 
-// Tickable.java
-@FunctionalInterface
-public interface Tickable {
-    /**
-     * Advances the component's state by one deterministic time unit.
-     * @param currentTick The current simulation time tick
-     */
-    void tick(long currentTick);
-}
-
-// SimulationEngine.java
 public class SimulationEngine {
     private final List<Tickable> components;
     private long currentTick;
@@ -23,8 +11,23 @@ public class SimulationEngine {
     }
 
     public void register(Tickable component) {
-        if (component != null) {
+        if (component != null && !components.contains(component)) {
             this.components.add(component);
+        }
+    }
+
+    public void registerNode(NetworkNode node) {
+        register(node);
+    }
+
+    public void registerGenerator(Tickable generator) {
+        register(generator);
+    }
+
+    public void tick(long tick) {
+        this.currentTick = tick;
+        for (Tickable component : this.components) {
+            component.tick(this.currentTick);
         }
     }
 

@@ -1,9 +1,3 @@
-package com.netforge.core.link;
-
-import com.netforge.core.contract.Packet;
-import com.netforge.core.contract.Tickable;
-import com.netforge.core.node.NetworkNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,11 +6,16 @@ import java.util.Objects;
 /**
  * Simulates a network link capable of reordering packets due to multi-path routing.
  */
-public class OutOfOrderNetworkLink implements Tickable {
+public class OutOfOrderNetworkLink extends NetworkLink {
     private final NetworkNode targetNode;
     private final List<Packet> inFlightBuffer;
 
     public OutOfOrderNetworkLink(NetworkNode targetNode) {
+        this("OutOfOrderNetworkLink", targetNode);
+    }
+
+    public OutOfOrderNetworkLink(String name, NetworkNode targetNode) {
+        super(name, 1, targetNode);
         this.targetNode = Objects.requireNonNull(targetNode, "Target node cannot be null");
         this.inFlightBuffer = new ArrayList<>();
     }
@@ -27,6 +26,7 @@ public class OutOfOrderNetworkLink implements Tickable {
      * @param packet      The packet to send
      * @param currentTick The simulation tick at which the packet entered the link
      */
+    @Override
     public void send(Packet packet, long currentTick) {
         if (packet != null) {
             inFlightBuffer.add(packet);
@@ -45,7 +45,7 @@ public class OutOfOrderNetworkLink implements Tickable {
         }
 
         Packet toDeliver = inFlightBuffer.remove(0);
-        targetNode.receive(toDeliver, currentTick);
+        targetNode.receivePacket(toDeliver, currentTick);
     }
 
     public int getInFlightCount() {

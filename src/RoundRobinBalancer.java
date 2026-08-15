@@ -1,27 +1,42 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * NetForge-Core Round-Robin Traffic Balancer.
- * Distributes network packets evenly across parallel target interfaces.
+ * Distributes network packets evenly across parallel target interfaces or nodes.
  */
 public class RoundRobinBalancer implements RoutingTable {
     private final List<String> targetInterfaceIds;
+    private final List<NetworkNode> targetNodes;
     private final AtomicInteger pointer;
 
     /**
-     * Constructs the balancer with a immutable copy of target interfaces.
+     * Constructs the balancer with a list of target interfaces or nodes.
      *
-     * @param targetInterfaceIds List of available outgoing interface identifiers
+     * @param items List of available outgoing interface identifiers or NetworkNode objects
      */
-    public RoundRobinBalancer(List<String> targetInterfaceIds) {
-        Objects.requireNonNull(targetInterfaceIds, "Target interface list cannot be null");
-        if (targetInterfaceIds.isEmpty()) {
-            throw new IllegalArgumentException("Target interface list cannot be empty");
+    public RoundRobinBalancer(List<?> items) {
+        Objects.requireNonNull(items, "Target items list cannot be null");
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("Target list cannot be empty");
         }
-        // Store an unmodifiable copy to ensure immutability and thread safety
-        this.targetInterfaceIds = List.copyOf(targetInterfaceIds);
+        
+        List<String> ids = new ArrayList<>();
+        List<NetworkNode> nodes = new ArrayList<>();
+
+        for (Object item : items) {
+            if (item instanceof NetworkNode node) {
+                nodes.add(node);
+                ids.add(node.getName());
+            } else if (item != null) {
+                ids.add(item.toString());
+            }
+        }
+
+        this.targetInterfaceIds = List.copyOf(ids);
+        this.targetNodes = List.copyOf(nodes);
         this.pointer = new AtomicInteger(0);
     }
 
@@ -34,13 +49,35 @@ public class RoundRobinBalancer implements RoutingTable {
     @Override
     public String route(Packet packet) {
         Objects.requireNonNull(packet, "Packet cannot be null");
+        if (targetInterfaceIds.isEmpty()) {
+            return null;
+        }
         
         int currentPointer = pointer.getAndIncrement();
-        
-        // Bitwise AND strips the sign bit, protecting against negative values 
-        // if the AtomicInteger overflows Integer.MAX_VALUE over long simulations.
         int targetIndex = (currentPointer & Integer.MAX_VALUE) % targetInterfaceIds.size();
         
         return targetInterfaceIds.get(targetIndex);
+    }
+
+    /**
+     * Retrieves the next target node using round-robin distribution.
+     *
+     * @return The next NetworkNode or null if nodes list is empty
+     */
+    public NetworkNode nextNode() {
+        if (targetNodes.isEmpty()) {
+            return null;
+        }
+        int currentPointer = pointer.getAndIncrement();
+        int targetIndex = (currentPointer & Integer.MAX_VALUE) % targetNodes.size();
+        return targetNodes.get(targetIndex);
+    }
+
+    public List<NetworkNode> getTargetNodes() {
+        return targetNodes;
+    }
+
+    public List<String> getTargetInterfaceIds() {
+        return targetInterfaceIds;
     }
 }

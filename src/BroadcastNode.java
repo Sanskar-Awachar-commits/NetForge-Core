@@ -7,7 +7,7 @@ import java.util.Optional;
  * A network node that replicates and broadcasts enqueued packets 
  * to all downstream connections on every simulation tick.
  */
-public class BroadcastNode implements Tickable, NetworkNode {
+public class BroadcastNode extends NetworkNode {
     private final QueuePolicy queuePolicy;
     private final List<NetworkNode> downstreams;
 
@@ -17,7 +17,8 @@ public class BroadcastNode implements Tickable, NetworkNode {
      * @param queuePolicy The buffer management strategy to use
      */
     public BroadcastNode(QueuePolicy queuePolicy) {
-        this.queuePolicy = Objects.requireNonNull(queuePolicy, "QueuePolicy cannot be null");
+        super("BroadcastNode", Objects.requireNonNull(queuePolicy, "QueuePolicy cannot be null"), (packet, tick) -> true);
+        this.queuePolicy = queuePolicy;
         this.downstreams = new ArrayList<>();
     }
 
@@ -54,7 +55,7 @@ public class BroadcastNode implements Tickable, NetworkNode {
                     packetToBroadcast.priority()
                 );
                 
-                downstream.receivePacket(clonedPacket);
+                downstream.receivePacket(clonedPacket, currentTick);
             }
         }
     }

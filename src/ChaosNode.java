@@ -1,21 +1,17 @@
 import java.util.Optional;
 
-// Tickable.java - Standard contract for components driven by the virtual clock
-interface Tickable {
-    void tick(long currentTick);
-}
-
 /**
  * ChaosNode - Simulates a network node that periodically goes offline (flaps).
  * When online, it dequeues and processes packets from its internal queue.
  * When offline, processing halts, causing packet backlogs and tail-drops.
  */
-public class ChaosNode implements Tickable {
+public class ChaosNode extends NetworkNode {
     private final QueuePolicy queue;
     private final int flapIntervalTicks;
     private Packet currentProcessedPacket;
 
     public ChaosNode(QueuePolicy queue, int flapIntervalTicks) {
+        super("ChaosNode", queue, (packet, tick) -> true);
         if (flapIntervalTicks <= 0) {
             throw new IllegalArgumentException("Flap interval must be greater than 0 ticks.");
         }
@@ -43,6 +39,9 @@ public class ChaosNode implements Tickable {
 
     private void processPacket(Packet packet, long currentTick) {
         // Deterministic processing logic for simulated packet transmission
+        if (getConnectedNode() != null) {
+            getConnectedNode().receivePacket(packet, currentTick);
+        }
     }
 
     public boolean enqueue(Packet packet) {

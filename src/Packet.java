@@ -1,4 +1,3 @@
-package src;
 public record Packet(
     String id,
     int sizeBytes,

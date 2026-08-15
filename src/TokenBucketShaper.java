@@ -5,6 +5,16 @@ public class TokenBucketShaper implements TrafficShaper {
     private long lastRefillTick;
 
     /**
+     * Constructs a TokenBucketShaper with sustained rate and burst capacity.
+     *
+     * @param refillRatePerTick Tokens generated per simulation tick.
+     * @param capacity Maximum number of tokens the bucket can hold.
+     */
+    public TokenBucketShaper(int refillRatePerTick, int capacity) {
+        this(capacity, refillRatePerTick, 0L);
+    }
+
+    /**
      * Constructs a TokenBucketShaper.
      * 
      * @param capacity Maximum number of tokens the bucket can hold.
@@ -52,5 +62,13 @@ public class TokenBucketShaper implements TrafficShaper {
     
     public int getCurrentTokens() {
         return currentTokens;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public int getRefillRatePerTick() {
+        return refillRatePerTick;
     }
 }

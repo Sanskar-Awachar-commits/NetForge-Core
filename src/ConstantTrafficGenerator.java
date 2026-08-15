@@ -1,4 +1,3 @@
-package src;
 import java.util.UUID;
 
 public class ConstantTrafficGenerator implements Tickable {
@@ -6,6 +5,10 @@ public class ConstantTrafficGenerator implements Tickable {
     private final NetworkNode target;
     private final int packetSize;
     private final int intervalTicks;
+
+    public ConstantTrafficGenerator(NetworkNode target, int intervalTicks) {
+        this(target, 256, intervalTicks);
+    }
 
     public ConstantTrafficGenerator(NetworkNode target, int packetSize, int intervalTicks) {
         if (intervalTicks <= 0) {
@@ -30,7 +33,7 @@ public class ConstantTrafficGenerator implements Tickable {
                 0
             );
             
-            target.receivePacket(packet);
+            target.receivePacket(packet, currentTick);
         }
     }
 }
