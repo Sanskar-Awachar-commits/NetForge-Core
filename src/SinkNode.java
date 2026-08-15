@@ -1,5 +1,4 @@
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 public final class SinkNode extends NetworkNode {
@@ -62,9 +61,9 @@ public final class SinkNode extends NetworkNode {
     }
 
     public void printStats() {
-        double averageLatency = totalPacketsReceived == 0 
-            ? 0.0 
-            : (double) totalLatencyTicks / totalPacketsReceived;
+        double averageLatency = totalPacketsReceived == 0
+                ? 0.0
+                : (double) totalLatencyTicks / totalPacketsReceived;
 
         System.out.println("=== NetForge-Core Sink Node Statistics ===");
         System.out.printf("Total Packets Received : %d%n", totalPacketsReceived);
