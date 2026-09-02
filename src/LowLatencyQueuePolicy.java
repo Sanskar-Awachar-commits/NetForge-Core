@@ -26,7 +26,7 @@ public final class LowLatencyQueuePolicy implements QueuePolicy {
                 return false;
             }
             return strictPriorityQueue.offer(packet);
-        }
+        }   
         return fairQueue.enqueue(packet);
     }
 
