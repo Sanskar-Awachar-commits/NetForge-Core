@@ -60,4 +60,4 @@ public class LatencyHistogramCollector {
         }
         return BUCKET_LIMITS[BUCKET_LIMITS.length - 2];
     }
-}
+}   
