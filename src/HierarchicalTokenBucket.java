@@ -1,5 +1,3 @@
-package netforge.core.shaping;
-
 import java.util.Map;
 import java.util.Objects;
 

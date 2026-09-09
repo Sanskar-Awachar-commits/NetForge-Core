@@ -2,13 +2,14 @@ import java.util.ArrayDeque;
 import java.util.Objects;
 import java.util.Queue;
 
-public final class TapNode implements NetworkNode, Tickable {
+public final class TapNode extends NetworkNode {
     private final NetworkNode primaryNode;
     private final NetworkNode analyticsSink;
     private final Queue<Packet> mirrorBuffer;
     private final int mirrorCapacity;
 
     public TapNode(NetworkNode primaryNode, NetworkNode analyticsSink, int mirrorCapacity) {
+        super("TapNode");
         this.primaryNode = Objects.requireNonNull(primaryNode, "primaryNode cannot be null");
         this.analyticsSink = Objects.requireNonNull(analyticsSink, "analyticsSink cannot be null");
         this.mirrorCapacity = mirrorCapacity;
@@ -20,16 +21,35 @@ public final class TapNode implements NetworkNode, Tickable {
     }
 
     @Override
-    public void receivePacket(Packet packet, long currentTick) {
-        Objects.requireNonNull(packet, "packet cannot be null");
+    public boolean receivePacket(Packet packet, long currentTick) {
+        if (packet == null) {
+            return false;
+        }
+
+        // TAP mirroring path: best-effort non-blocking isolation
+        mirrorPacket(packet);
 
         // Primary path transmission guarantees zero disruption
         try {
-            primaryNode.receivePacket(packet, currentTick);
-        } finally {
-            // TAP mirroring path: best-effort non-blocking isolation
-            mirrorPacket(packet);
+            return primaryNode.receivePacket(packet, currentTick);
+        } catch (Exception e) {
+            return false;
         }
+    }
+
+    @Override
+    public boolean receivePacket(Packet packet) {
+        return receivePacket(packet, 0L);
+    }
+
+    @Override
+    public boolean receive(Packet packet, long currentTick) {
+        return receivePacket(packet, currentTick);
+    }
+
+    @Override
+    public boolean receive(Packet packet) {
+        return receivePacket(packet, 0L);
     }
 
     @Override
@@ -44,12 +64,8 @@ public final class TapNode implements NetworkNode, Tickable {
             }
         }
 
-        if (primaryNode instanceof Tickable tickablePrimary) {
-            tickablePrimary.tick(currentTick);
-        }
-        if (analyticsSink instanceof Tickable tickableSink) {
-            tickableSink.tick(currentTick);
-        }
+        primaryNode.tick(currentTick);
+        analyticsSink.tick(currentTick);
     }
 
     private void mirrorPacket(Packet original) {
@@ -66,5 +82,13 @@ public final class TapNode implements NetworkNode, Tickable {
         } catch (Exception ignored) {
             // Guard primary path against internal tap allocation or queue failures
         }
+    }
+
+    public NetworkNode getPrimaryNode() {
+        return primaryNode;
+    }
+
+    public NetworkNode getAnalyticsSink() {
+        return analyticsSink;
     }
 }

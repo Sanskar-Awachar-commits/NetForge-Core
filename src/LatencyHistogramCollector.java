@@ -1,4 +1,4 @@
-public class LatencyHistogramCollector {
+public class LatencyHistogramCollector implements Tickable {
     // Upper bounds (inclusive) for buckets; last entry represents latency > 50
     private static final long[] BUCKET_LIMITS = {5, 10, 20, 50, Long.MAX_VALUE};
     private final long[] counts = new long[BUCKET_LIMITS.length];

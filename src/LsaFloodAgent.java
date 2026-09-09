@@ -1,10 +1,6 @@
 import java.util.*;
 import java.util.function.Consumer;
 
-interface Tickable {
-    void tick(long currentTick);
-}
-
 public class LsaFloodAgent implements Tickable {
     private final String nodeId;
     private final Set<String> processedLsaIds = new HashSet<>();

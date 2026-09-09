@@ -66,6 +66,20 @@ public class NetworkLink extends NetworkNode {
         return true;
     }
 
+    public int getQueueSize() {
+        return getQueuePolicy() != null ? getQueuePolicy().currentSize() : 0;
+    }
+
+    public int getInFlightBytes() {
+        int total = 0;
+        for (List<Packet> list : inTransitPackets.values()) {
+            for (Packet p : list) {
+                total += p.sizeBytes();
+            }
+        }
+        return total;
+    }
+
     @Override
     public void tick(long currentTick) {
         List<Packet> arrivingPackets = inTransitPackets.remove(currentTick);

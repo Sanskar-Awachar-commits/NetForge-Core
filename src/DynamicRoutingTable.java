@@ -36,22 +36,34 @@ public class DynamicRoutingTable implements RoutingTable {
     }
 
     @Override
-    public Optional<String> route(Packet packet) {
+    public String route(Packet packet) {
         if (packet == null) {
-            return Optional.empty();
+            return null;
         }
         if (isControlPlaneFrame(packet)) {
             processControlFrame(packet);
-            return Optional.of("LOCAL_CONTROL_PLANE");
+            return "LOCAL_CONTROL_PLANE";
         }
-        return Optional.ofNullable(routes.get(packet.id()));
+        return routes.get(packet.id());
     }
 
-    public Optional<String> lookup(String destination) {
-        return Optional.ofNullable(routes.get(destination));
+    public String lookup(String destination) {
+        return destination != null ? routes.get(destination) : null;
     }
-}
 
-interface RoutingTable {
-    Optional<String> route(Packet packet);
+    public Map<String, Integer> exportDistanceVector() {
+        Map<String, Integer> vector = new ConcurrentHashMap<>();
+        for (String dest : routes.keySet()) {
+            vector.put(dest, 1);
+        }
+        return vector;
+    }
+
+    public boolean updateRouteIfBetter(String destination, String nextHop, int advertisedMetric, int linkCost) {
+        if (destination != null && nextHop != null) {
+            routes.put(destination, nextHop);
+            return true;
+        }
+        return false;
+    }
 }

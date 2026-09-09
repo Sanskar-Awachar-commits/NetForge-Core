@@ -1,4 +1,6 @@
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public final class SinkNode extends NetworkNode {
@@ -7,6 +9,7 @@ public final class SinkNode extends NetworkNode {
     private long duplicateCount = 0;
     private long droppedCount = 0;
     private final Set<String> seenPacketIds = new HashSet<>();
+    private final Map<Integer, Long> packetsByPriority = new HashMap<>();
 
     public SinkNode() {
         super("SinkNode");
@@ -30,6 +33,7 @@ public final class SinkNode extends NetworkNode {
 
         totalPacketsReceived++;
         totalLatencyTicks += latency;
+        packetsByPriority.merge(packet.priority(), 1L, Long::sum);
 
         if (packet.id().endsWith("_DUP") || seenPacketIds.contains(packet.id())) {
             duplicateCount++;
@@ -78,6 +82,10 @@ public final class SinkNode extends NetworkNode {
 
     public int getReceivedCount() {
         return (int) totalPacketsReceived;
+    }
+
+    public long getReceivedCountByPriority(int priority) {
+        return packetsByPriority.getOrDefault(priority, 0L);
     }
 
     public long getTotalLatencyTicks() {

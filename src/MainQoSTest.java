@@ -5,13 +5,16 @@ public class MainQoSTest {
 
         // Initialize QoS queue policy prioritizing VoIP (Strict) over Bulk (DRR)
         QueuePolicy llqPolicy = new LowLatencyQueuePolicy(
-                new StrictQueue(),
+                1000,
                 new DeficitRoundRobinQueue(1500)
         );
         
-        NetworkNode edgeRouter = new NetworkNode("EdgeRouter", llqPolicy);
         SinkNode metricSink = new SinkNode("MetricsSink");
-        edgeRouter.setNextHop(metricSink);
+        NetworkNode edgeRouter = new NetworkNode("EdgeRouter", llqPolicy, (packet, tick) -> true);
+        edgeRouter.connect(metricSink);
+
+        engine.register(edgeRouter);
+        engine.register(metricSink);
 
         // Shaper for Bulk traffic: CIR, CBS, PIR, PBS limits
         TrafficShaper bulkShaper = new TwoRateThreeColorShaper(1000, 5000, 2000, 10000);
@@ -22,20 +25,20 @@ public class MainQoSTest {
         for (long tick = 1; tick <= 200; tick++) {
             // High-priority bursty VoIP stream (Priority 9)
             if (tick % 10 == 0) {
-                edgeRouter.enqueue(new Packet("VOIP_" + tick, 120, tick, 9));
+                edgeRouter.receivePacket(new Packet("VOIP_" + tick, 120, tick, 9), tick);
                 voipSent++;
             }
 
             // Low-priority heavy bulk flood (Priority 1)
             Packet bulkPacket = new Packet("BULK_" + tick, 1500, tick, 1);
             if (bulkShaper.evaluate(bulkPacket, tick)) {
-                edgeRouter.enqueue(bulkPacket);
+                edgeRouter.receivePacket(bulkPacket, tick);
                 bulkSent++;
             } else {
                 bulkDroppedByShaper++;
             }
 
-            engine.processTick(tick, edgeRouter, metricSink);
+            engine.tick(tick);
         }
 
         // Output QoS verification metrics
